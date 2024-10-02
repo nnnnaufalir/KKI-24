@@ -225,6 +225,40 @@ def set_arm_state(arm: bool):
 print(get_vehicle_data())
 ################### -----------OPENCV-------###################
 print("start cv")
+
+
+def draw_custom_lines(frame):
+    # Definisikan koordinat garis
+    patokan_start = (320, 0)
+    patokan_end = (320, 640)
+
+    kiri_s_start = (250, 0)
+    kiri_s_end = (250, 640)
+
+    kanan_s_start = (390, 0)
+    kanan_s_end = (390, 640)
+
+    kiri_m_start = (100, 0)
+    kiri_m_end = (100, 640)
+
+    kanan_m_start = (540, 0)
+    kanan_m_end = (540, 640)
+
+    # Gambar garis putih
+    cv2.line(frame, patokan_start, patokan_end,
+             (255, 255, 255), 1)  # Garis Patokan
+    cv2.line(frame, kiri_s_start, kiri_s_end,
+             (255, 255, 255), 1)  # Garis Kiri S
+    cv2.line(frame, kiri_m_start, kiri_m_end,
+             (255, 255, 255), 1)  # Garis Kiri M
+    cv2.line(frame, kanan_s_start, kanan_s_end,
+             (255, 255, 255), 1)  # Garis Kanan S
+    cv2.line(frame, kanan_m_start, kanan_m_end,
+             (255, 255, 255), 1)  # Garis Kanan M
+
+    return frame
+
+
 # Membaca file coco.txt untuk daftar kelas
 my_file = open("coco.txt", "r")
 data = my_file.read()
@@ -247,7 +281,8 @@ frame_hyt = 640
 img_counter = 0
 
 print("Start Camera")
-cap = cv2.VideoCapture("A.mp4")
+# cap = cv2.VideoCapture(0)q
+cap = cv2.VideoCapture("B.mp4")
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
@@ -274,6 +309,8 @@ try:
 
         # Resize frame untuk optimasi
         frame = cv2.resize(frame, (frame_wid, frame_hyt))
+        # Gambar garis pada frame yang diambil dari kamera
+        frame_with_lines = draw_custom_lines(frame)
 
         # Melakukan prediksi pada frame
         detect_params = model.predict(
@@ -401,6 +438,26 @@ try:
 
         # Menampilkan frame yang sudah diproses
         cv2.imshow('ASV KKI 2024', frame)
+
+        # lurus
+        if mid_point[0] > 250 and mid_point[0] < 390:
+            override_rc_channels(connection, rc1_value_awal,
+                                 rc2_value_awal, rc3_value_lurus, rc4_value_awal)
+        # kiri s
+        elif mid_point[0] > 100 and mid_point[0] < 250:
+            override_rc_channels(connection, rc1_value_kiri_sitik,
+                                 rc2_value_awal, rc3_value_lurus, rc4_value_awal)
+        # kiri m
+        elif mid_point[0] > 0 and mid_point[0] < 100:
+            override_rc_channels(connection, rc1_value_kiri_mentok,
+                                 rc2_value_awal, rc3_value_lurus, rc4_value_awal)
+        # kanan s
+        elif mid_point[0] > 390 and mid_point[0] < 540:
+            override_rc_channels(connection, rc1_value_kanan_sitik,
+                                 rc2_value_awal, rc3_value_lurus, rc4_value_awal)
+        elif mid_point[0] > 540 and mid_point[0] < 640:
+            override_rc_channels(connection, rc1_value_kanan_mentok,
+                                 rc2_value_awal, rc3_value_lurus, rc4_value_awal)
 
         k = cv2.waitKey(1)
         if k % 256 == 32:
